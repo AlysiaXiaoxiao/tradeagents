@@ -64,6 +64,9 @@ class ParallelAIUtilities:
         return list(prompt_hashmap.values())
 
     async def run_parallel_ai_completion(self, prompts: List[LLMPromptContext], update_history:bool=True) -> List[LLMOutput]:
+        if self._should_use_mock_outputs(prompts):
+            return self._create_mock_outputs(prompts)
+
         openai_prompts = [p for p in prompts if p.llm_config.client == "openai"]
         anthropic_prompts = [p for p in prompts if p.llm_config.client == "anthropic"]
         vllm_prompts = [p for p in prompts if p.llm_config.client == "vllm"] 
@@ -88,6 +91,53 @@ class ParallelAIUtilities:
             prompts = self._update_prompt_history(prompts, flattened_results)
         
         return flattened_results
+
+    def _should_use_mock_outputs(self, prompts: List[LLMPromptContext]) -> bool:
+        if not prompts:
+            return False
+        if os.getenv("TRADEAGENTS_DISABLE_MOCK_LLM", "").lower() in {"1", "true", "yes"}:
+            return False
+        credential_by_client = {
+            "openai": self.openai_key,
+            "anthropic": self.anthropic_key,
+            "vllm": self.vllm_key,
+            "litellm": self.litellm_key,
+        }
+        return all(not credential_by_client.get(prompt.llm_config.client) for prompt in prompts)
+
+    def _create_mock_outputs(self, prompts: List[LLMPromptContext]) -> List[LLMOutput]:
+        now = time.time()
+        outputs = []
+        for index, prompt in enumerate(prompts, start=1):
+            outputs.append(
+                LLMOutput(
+                    raw_result=self._mock_response_for_prompt(prompt, index),
+                    completion_kwargs={"mock": True},
+                    start_time=now,
+                    end_time=time.time(),
+                    source_id=prompt.id,
+                    client=None,
+                )
+            )
+        return outputs
+
+    def _mock_response_for_prompt(self, prompt: LLMPromptContext, index: int) -> Dict[str, Any]:
+        message = (prompt.new_message or "").lower()
+        if "topic proposer" in message or ("propose" in message and "topic" in message):
+            return {"action": {"content": "Local demo discussion: market expectations, pricing signals, and trading strategy."}}
+        if "reflect" in message:
+            return {
+                "reflection": "Local demo reflection: reviewed the discussion and kept a cautious trading stance.",
+                "strategy_update": ["Watch cohort sentiment", "Keep prices near observed consensus"],
+                "self_reward": 0.7,
+            }
+        if "generate an action" in message:
+            return {"action": {"content": f"Local demo agent {index}: I think supply, demand, and recent messages suggest staying flexible."}}
+        return {
+            "monologue": "Local demo perception: observing the current group-chat state and recent messages.",
+            "strategy": ["Listen to other agents", "Share concise market reasoning"],
+            "confidence": 0.6,
+        }
     
     def get_all_requests(self):
         requests = self.all_requests
@@ -275,7 +325,12 @@ class ParallelAIUtilities:
     def _get_litellm_request(self, prompt: LLMPromptContext) -> Optional[Dict[str, Any]]:
         if prompt.llm_config.response_format == "json_object":
             raise ValueError("VLLM does not support json_object response format otherwise infinite whitespaces are returned")
-        return self._get_openai_request(prompt)
+        request = self._get_openai_request(prompt)
+        if request and "api.deepseek.com" in self.litellm_endpoint:
+            request.pop("response_format", None)
+            request.pop("tools", None)
+            request.pop("tool_choice", None)
+        return request
         
     def _convert_prompt_to_request(self, prompt: LLMPromptContext, client: str) -> Optional[Dict[str, Any]]:
         if client == "openai":

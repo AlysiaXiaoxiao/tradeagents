@@ -140,7 +140,10 @@ async def process_api_requests_from_file(
         # `requests` will provide requests one at a time
         requests = file.__iter__()
         logging.debug(f"File opened. Entering main loop")
-        async with aiohttp.ClientSession() as session:  # Initialize ClientSession here
+        connector = None
+        if os.getenv("TRADEAGENTS_INSECURE_SSL", "").lower() in {"1", "true", "yes"}:
+            connector = aiohttp.TCPConnector(ssl=False)
+        async with aiohttp.ClientSession(connector=connector) as session:  # Initialize ClientSession here
             while True:
                 # get next request (if one is not already waiting for capacity)
                 if next_request is None:
@@ -433,6 +436,8 @@ def api_endpoint_from_url(request_url: str) -> str:
                 if match is None:
                     # for endpoints with direct chat/completions path
                     match = re.search(r"^http://(?:localhost|\d+\.\d+\.\d+\.\d+):\d+/(.+)$", request_url)
+                    if match is None:
+                        match = re.search(r"^https://[^/]+/(chat/completions)$", request_url)
                     if match is None:
                         raise ValueError(f"Invalid URL: {request_url}")
     return match[1]

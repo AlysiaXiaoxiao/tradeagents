@@ -1,0 +1,22 @@
+# Local environment
+.env
+.venv/
+.venv*/
+
+# Runtime outputs
+logs/
+outputs/
+simulation_output.log
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# OS/editor
+.DS_Store
+.idea/
+.vscode/

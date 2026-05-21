@@ -451,16 +451,22 @@ class GroupChatOrchestrator:
 
     async def get_round_summary(self, round_num: int) -> Dict[str, Any]:
         """Return a summary of the round"""
-        summary = {
-            'round': round_num,
-            'agent_states': [{
+        agent_states = []
+        for agent in self.agents:
+            recent_memories = []
+            if agent.short_term_memory:
+                recent_memories = await agent.short_term_memory.retrieve_recent_memories(limit=1)
+            agent_states.append({
                 'id': agent.id,
                 'index': agent.index,
                 'last_action': agent.last_action,
                 'last_observation': agent.last_observation,
-                # Get the most recent memory from short-term memory
-                'memory': (await agent.short_term_memory.retrieve_recent_memories(limit=1))[0] if agent.short_term_memory else None
-            } for agent in self.agents],
+                'memory': recent_memories[0] if recent_memories else None
+            })
+
+        summary = {
+            'round': round_num,
+            'agent_states': agent_states,
             'cohorts': {cohort_id: [agent.id for agent in agents] 
                     for cohort_id, agents in self.cohorts.items()},
             'topics': self.topic_proposers,
@@ -487,4 +493,3 @@ class GroupChatOrchestrator:
             for agent_state in summary['agent_states']:
                 print(f"  Agent {agent_state['index']} last action: {agent_state['last_action']}")
             print()
-

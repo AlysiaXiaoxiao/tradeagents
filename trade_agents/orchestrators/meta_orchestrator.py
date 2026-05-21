@@ -342,7 +342,7 @@ class MetaOrchestrator:
 
         # Print summaries for each environment
         for orchestrator in self.environment_orchestrators.values():
-            orchestrator.print_summary()
+            await orchestrator.print_summary()
 
     async def start(self):
         print_ascii_art()

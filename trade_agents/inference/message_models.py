@@ -400,6 +400,8 @@ class LLMOutput(BaseModel):
              return self._parse_oai_completion(ChatCompletion.model_validate(self.raw_result))
         elif provider == "litellm":
             return self._parse_oai_completion(ChatCompletion.model_validate(self.raw_result))
+        elif isinstance(self.raw_result, dict):
+            return None, GeneratedJsonObject(name="local_mock", object=self.raw_result), None, None, []
         else:
             raise ValueError(f"Unsupported result provider: {provider}")
 

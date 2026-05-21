@@ -31,14 +31,24 @@ class MemoryEmbedder:
 
         texts = [self._truncate_text(text) for text in texts]
 
-        if self.config.embedding_provider == "openai":
-            all_embeddings = self._get_openai_embeddings(texts)
-        elif self.config.embedding_provider == "tei":
-            all_embeddings = self._get_tei_embeddings(texts)
-        else:
-            raise NotImplementedError(
-                f"Unknown embedding provider: {self.config.embedding_provider}"
-            )
+        if self.config.embedding_provider == "mock":
+            all_embeddings = [[0.0] * self.config.vector_dim for _ in texts]
+            return all_embeddings[0] if single_input else all_embeddings
+
+        try:
+            if self.config.embedding_provider == "openai":
+                all_embeddings = self._get_openai_embeddings(texts)
+            elif self.config.embedding_provider == "tei":
+                all_embeddings = self._get_tei_embeddings(texts)
+            else:
+                raise NotImplementedError(
+                    f"Unknown embedding provider: {self.config.embedding_provider}"
+                )
+        except Exception as e:
+            if os.getenv("TRADEAGENTS_DISABLE_MOCK_EMBEDDINGS", "").lower() in {"1", "true", "yes"}:
+                raise
+            logging.warning(f"Embedding provider unavailable; using local zero-vector embeddings: {e}")
+            all_embeddings = [[0.0] * self.config.vector_dim for _ in texts]
 
         return all_embeddings[0] if single_input else all_embeddings
 

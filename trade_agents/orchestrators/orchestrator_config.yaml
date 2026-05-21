@@ -5,9 +5,9 @@ max_rounds: 2
 environment_order:
   - group_chat
 #  - auction
-tool_mode: true
+tool_mode: false
 agent_config:
-#  knowledge_base: "hamlet_kb"
+  knowledge_base: ""
   num_units: 10
   buyer_base_value: 120.0
   seller_base_value: 80.0
@@ -20,9 +20,9 @@ agent_config:
   noise_factor: 0.05
   max_relative_spread: 0.2
 llm_configs:
-    - name: "gpt-4o-mini"
-      model: "gpt-4o-mini"
-      client: "openai"
+    - name: "deepseek-v4-flash"
+      model: "deepseek-v4-flash"
+      client: "litellm"
       max_tokens: 2048
       temperature: 0.5
       use_cache: true
