@@ -14,10 +14,10 @@ import random
 logger = logging.getLogger(__name__)
 
 class MarketSummary(BaseModel):
-    trades_count: int = Field(default=0, description="Number of trades executed")
-    average_price: float = Field(default=0.0, description="Average price of trades")
-    total_volume: int = Field(default=0, description="Total volume of trades")
-    price_range: Tuple[float, float] = Field(default=(0.0, 0.0), description="Range of prices")
+    trades_count: int = Field(default=0, description="已执行交易数量")
+    average_price: float = Field(default=0.0, description="平均成交价格")
+    total_volume: int = Field(default=0, description="总成交量")
+    price_range: Tuple[float, float] = Field(default=(0.0, 0.0), description="成交价格范围")
 
 class AuctionAction(LocalAction):
     action: Union[Bid, Ask]
@@ -43,9 +43,9 @@ class GlobalAuctionAction(GlobalAction):
     actions: Dict[str, AuctionAction]
 
 class AuctionObservation(BaseModel):
-    trades: List[Trade] = Field(default_factory=list, description="List of trades the agent participated in")
-    market_summary: MarketSummary = Field(default_factory=MarketSummary, description="Summary of market activity")
-    waiting_orders: List[Union[Bid, Ask]] = Field(default_factory=list, description="List of orders waiting to be executed")
+    trades: List[Trade] = Field(default_factory=list, description="该智能体参与的交易列表")
+    market_summary: MarketSummary = Field(default_factory=MarketSummary, description="市场活动摘要")
+    waiting_orders: List[Union[Bid, Ask]] = Field(default_factory=list, description="等待执行的订单列表")
 
     def serialize_json(self) -> str:
         """Serialize the observation to JSON string, handling datetime objects"""
@@ -90,14 +90,14 @@ class AuctionObservationSpace(ObservationSpace):
 
 
 class DoubleAuction(Mechanism):
-    max_rounds: int = Field(default=10, description="Maximum number of auction rounds")
-    current_round: int = Field(default=0, description="Current round number")
-    trades: List[Trade] = Field(default_factory=list, description="List of executed trades")
-    waiting_bids: List[AuctionAction] = Field(default_factory=list, description="List of waiting bids")
-    waiting_asks: List[AuctionAction] = Field(default_factory=list, description="List of waiting asks")
-    good_name: str = Field(default="apple", description="Name of the good being traded")
+    max_rounds: int = Field(default=10, description="最大拍卖轮数")
+    current_round: int = Field(default=0, description="当前轮次")
+    trades: List[Trade] = Field(default_factory=list, description="已执行交易列表")
+    waiting_bids: List[AuctionAction] = Field(default_factory=list, description="等待成交的买方出价列表")
+    waiting_asks: List[AuctionAction] = Field(default_factory=list, description="等待成交的卖方要价列表")
+    good_name: str = Field(default="apple", description="交易商品名称")
 
-    sequential: bool = Field(default=False, description="Whether the mechanism is sequential")
+    sequential: bool = Field(default=False, description="机制是否按顺序执行")
 
     def step(self, action: GlobalAuctionAction) -> EnvironmentStep:
         self.current_round += 1
@@ -225,9 +225,8 @@ class DoubleAuction(Mechanism):
         )
 
 class AuctionMarket(MultiAgentEnvironment):
-    name: str = Field(default="Auction Market", description="Name of the auction market")
+    name: str = Field(default="拍卖市场", description="拍卖市场名称")
     
-    action_space : AuctionActionSpace = Field(default_factory=AuctionActionSpace, description="Action space of the auction market")
-    observation_space : AuctionObservationSpace = Field(default_factory=AuctionObservationSpace, description="Observation space of the auction market")
-    mechanism : DoubleAuction = Field(default_factory=DoubleAuction, description="Mechanism of the auction market")
-
+    action_space : AuctionActionSpace = Field(default_factory=AuctionActionSpace, description="拍卖市场的动作空间")
+    observation_space : AuctionObservationSpace = Field(default_factory=AuctionObservationSpace, description="拍卖市场的观察空间")
+    mechanism : DoubleAuction = Field(default_factory=DoubleAuction, description="拍卖市场机制")

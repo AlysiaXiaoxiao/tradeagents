@@ -136,14 +136,14 @@ class AuctionOrchestrator(BaseEnvironmentOrchestrator):
             agent.environments[self.environment_name] = self.environment
             
         log_environment_setup(self.logger, self.environment_name)
-        self.logger.info("Auction environment setup complete.")
+        self.logger.info("拍卖环境设置完成。")
         
         # Verify environments are properly set
         for agent in self.agents:
             if self.environment_name not in agent.environments:
-                self.logger.error(f"Agent {agent.index} missing auction environment!")
+                self.logger.error(f"智能体 {agent.index} 缺少 auction 环境！")
             else:
-                self.logger.info(f"Agent {agent.index} environments: {list(agent.environments.keys())}")
+                self.logger.info(f"智能体 {agent.index} 环境列表：{list(agent.environments.keys())}")
 
         return self.environment
 
@@ -175,7 +175,7 @@ class AuctionOrchestrator(BaseEnvironmentOrchestrator):
                 log_perception(self.logger, agent.index, perception.json_object.object if perception and perception.json_object else None)
                 agent.last_perception = perception.json_object.object if perception and perception.json_object else ""
             else:
-                self.logger.warning(f"No perception found for agent {agent.index}")
+                self.logger.warning(f"未找到智能体 {agent.index} 的感知结果")
                 agent.last_perception = None
 
         # Extract perception contents for action generation
@@ -218,19 +218,19 @@ class AuctionOrchestrator(BaseEnvironmentOrchestrator):
                     else:
                         raise ValueError(f"Invalid action content: {action_content}")
                 except (json.JSONDecodeError, KeyError, ValueError) as e:
-                    self.logger.error(f"Error creating AuctionAction for agent {agent.index}: {str(e)}")
+                    self.logger.error(f"为智能体 {agent.index} 创建 AuctionAction 时出错：{str(e)}")
             else:
-                self.logger.warning(f"No action found for agent {agent.index}")
+                self.logger.warning(f"未找到智能体 {agent.index} 的行动")
 
         # Create global action and step the environment
         global_action = GlobalAuctionAction(actions=agent_actions)
         try:
             env_state = env.step(global_action)
         except Exception as e:
-            self.logger.error(f"Error in environment {self.environment_name}: {str(e)}")
+            self.logger.error(f"环境 {self.environment_name} 出错：{str(e)}")
             raise e
 
-        self.logger.info(f"Completed {self.environment_name} step")
+        self.logger.info(f"已完成 {self.environment_name} 步骤")
 
         # Process the environment state
         if isinstance(env_state.global_observation, AuctionGlobalObservation):
@@ -307,13 +307,13 @@ class AuctionOrchestrator(BaseEnvironmentOrchestrator):
     def process_environment_state(self, env_state: EnvironmentStep):
         global_observation = env_state.global_observation
         if not isinstance(global_observation, AuctionGlobalObservation):
-            self.logger.error(f"Unexpected global observation type: {type(global_observation)}")
+            self.logger.error(f"意外的全局观察类型：{type(global_observation)}")
             return
 
         round_surplus = 0
         round_quantity = 0
         agent_surpluses = {}
-        self.logger.info(f"Processing {len(global_observation.all_trades)} trades")
+        self.logger.info(f"正在处理 {len(global_observation.all_trades)} 笔交易")
         
         log_section(self.logger, "TRADES")
         
@@ -331,7 +331,7 @@ class AuctionOrchestrator(BaseEnvironmentOrchestrator):
                 buyer_surplus = round(buyer.economic_agent.calculate_individual_surplus(), 2)
                 seller_surplus = round(seller.economic_agent.calculate_individual_surplus(), 2)
                 
-                self.logger.info(f"Buyer surplus: {buyer_surplus:.2f}, Seller surplus: {seller_surplus:.2f}")
+                self.logger.info(f"买方剩余：{buyer_surplus:.2f}，卖方剩余：{seller_surplus:.2f}")
                 
                 # Update agent surpluses
                 agent_surpluses[buyer.id] = round(agent_surpluses.get(buyer.id, 0) + buyer_surplus, 2)
@@ -344,15 +344,15 @@ class AuctionOrchestrator(BaseEnvironmentOrchestrator):
                 round_surplus += trade_surplus
                 round_quantity += trade.quantity
                 
-                self.logger.info(f"Executed trade: {trade}")
-                self.logger.info(f"Trade surplus: {trade_surplus:.2f}")
+                self.logger.info(f"已执行交易：{trade}")
+                self.logger.info(f"交易剩余：{trade_surplus:.2f}")
                 
             except Exception as e:
-                self.logger.error(f"Error processing trade: {str(e)}")
+                self.logger.error(f"处理交易时出错：{str(e)}")
                 self.logger.exception("Exception details:")
         
         self.tracker.add_round_data(round_surplus, round_quantity)
-        self.logger.info(f"Round summary - Surplus: {round_surplus}, Quantity: {round_quantity}")
+        self.logger.info(f"本轮总结 - 剩余：{round_surplus}，数量：{round_quantity}")
         
         # Update agent states
         for agent_id, agent_observation in global_observation.observations.items():
@@ -369,8 +369,8 @@ class AuctionOrchestrator(BaseEnvironmentOrchestrator):
                 agent.last_observation = serialized_observation
                 agent.last_step = env_state
             except Exception as e:
-                self.logger.error(f"Error updating agent {agent_id} state: {str(e)}")
-                self.logger.exception("Exception details:")
+                self.logger.error(f"更新智能体 {agent_id} 状态时出错：{str(e)}")
+                self.logger.exception("异常详情：")
 
         # Store agent_surpluses for reflection
         env_state.info['agent_rewards'] = agent_surpluses
@@ -422,10 +422,10 @@ class AuctionOrchestrator(BaseEnvironmentOrchestrator):
                 {self.environment_name: self.tracker}
             )
             
-            self.logger.info(f"Data for round {round_num} inserted successfully.")
+            self.logger.info(f"第 {round_num} 轮数据已成功写入。")
         except Exception as e:
-            self.logger.error(f"Error inserting data for round {round_num}: {str(e)}")
-            self.logger.exception("Exception details:")
+            self.logger.error(f"写入第 {round_num} 轮数据时出错：{str(e)}")
+            self.logger.exception("异常详情：")
 
     async def run(self):
         self.setup_environment()
@@ -447,41 +447,42 @@ class AuctionOrchestrator(BaseEnvironmentOrchestrator):
         )
         total_empirical_surplus = total_buyer_surplus + total_seller_surplus
 
-        print(f"Total Empirical Buyer Surplus: {total_buyer_surplus:.2f}")
-        print(f"Total Empirical Seller Surplus: {total_seller_surplus:.2f}")
-        print(f"Total Empirical Surplus: {total_empirical_surplus:.2f}")
+        print(f"买方经验总剩余：{total_buyer_surplus:.2f}")
+        print(f"卖方经验总剩余：{total_seller_surplus:.2f}")
+        print(f"经验总剩余：{total_empirical_surplus:.2f}")
 
         global_state = self.environment.get_global_state()
         equilibria = global_state.get('equilibria', {})
 
         if equilibria:
             theoretical_total_surplus = sum(data['total_surplus'] for data in equilibria.values())
-            print(f"\nTheoretical Total Surplus: {theoretical_total_surplus:.2f}")
+            print(f"\n理论总剩余：{theoretical_total_surplus:.2f}")
 
             efficiency = (total_empirical_surplus / theoretical_total_surplus) * 100 if theoretical_total_surplus > 0 else 0
-            print(f"\nEmpirical Efficiency: {efficiency:.2f}%")
+            print(f"\n经验效率：{efficiency:.2f}%")
         else:
-            print("\nTheoretical equilibrium data not available.")
+            print("\n没有可用的理论均衡数据。")
 
         summary = self.tracker.get_summary()
-        print(f"\nAuction Environment:")
-        print(f"Total number of trades: {summary['total_trades']}")
-        print(f"Total surplus: {summary['total_surplus']:.2f}")
-        print(f"Total quantity traded: {summary['total_quantity']}")
+        print(f"\n拍卖环境：")
+        print(f"交易总数：{summary['total_trades']}")
+        print(f"总剩余：{summary['total_surplus']:.2f}")
+        print(f"成交总数量：{summary['total_quantity']}")
 
-        print("\nFinal Agent States:")
+        print("\n最终智能体状态：")
         for agent in self.agents:
-            print(f"Agent {agent.index} ({agent.role}):")
-            print(f"  Cash: {agent.economic_agent.endowment.current_basket.cash:.2f}")
-            print(f"  Goods: {agent.economic_agent.endowment.current_basket.goods_dict}")
+            role_name = "买方" if agent.role == "buyer" else "卖方" if agent.role == "seller" else agent.role
+            print(f"智能体 {agent.index}（{role_name}）：")
+            print(f"  现金：{agent.economic_agent.endowment.current_basket.cash:.2f}")
+            print(f"  商品：{agent.economic_agent.endowment.current_basket.goods_dict}")
             surplus = agent.economic_agent.calculate_individual_surplus()
-            print(f"  Individual Surplus: {surplus:.2f}")
+            print(f"  个体剩余：{surplus:.2f}")
             
             # Get the most recent reflection from short-term memory
             try:
                 recent_reflections = await agent.short_term_memory.retrieve_recent_memories(cognitive_step='reflection', limit=1)
                 if recent_reflections:
-                    print(f"  Last Reflection: {recent_reflections[0].content}")
+                    print(f"  上一次反思：{recent_reflections[0].content}")
             except Exception as e:
-                self.logger.warning(f"Failed to retrieve reflection for agent {agent.index}: {e}")
+                self.logger.warning(f"未能获取智能体 {agent.index} 的反思：{e}")
             print()

@@ -108,9 +108,9 @@ class MemoryEmbedder:
                 response.raise_for_status()
                 return response
             except requests.exceptions.HTTPError as http_err:
-                print(f"HTTP error occurred: {http_err}")
+                print(f"发生 HTTP 错误：{http_err}")
                 if response is not None:
-                    print(f"Response content: {response.content}")
+                    print(f"响应内容：{response.content}")
                 if attempt == self.config.retry_attempts - 1:
                     raise
                 time.sleep(self.config.retry_delay)

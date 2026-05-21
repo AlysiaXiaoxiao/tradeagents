@@ -113,14 +113,14 @@ class MetaOrchestrator:
     
     def _initialize_knowledge_base(self, kb_name: str) -> Optional[KnowledgeBaseAgent]:
         """Initialize knowledge base agent if specified"""
-        print(f"\nAttempting to initialize knowledge base: {kb_name}")
+        print(f"\n正在尝试初始化知识库：{kb_name}")
         if not kb_name:
-            print("No knowledge base name provided")
+            print("未提供知识库名称")
             return None
             
         try:
             # Initialize knowledge base with the given prefix
-            print(f"Initializing MarketKnowledgeBase with prefix: {kb_name}")
+            print(f"正在使用前缀初始化 MarketKnowledgeBase：{kb_name}")
             market_kb = MarketKnowledgeBase(
                 config=self.memory_config,
                 db_conn=self.db_conn,
@@ -128,14 +128,14 @@ class MetaOrchestrator:
                 table_prefix=kb_name
             )
             
-            print("Initializing MemoryRetriever")
+            print("正在初始化 MemoryRetriever")
             retriever = MemoryRetriever(
                 config=self.memory_config,
                 db_conn=self.db_conn,
                 embedding_service=self.embedder
             )
             
-            print("Creating KnowledgeBaseAgent")
+            print("正在创建 KnowledgeBaseAgent")
             kb_agent = KnowledgeBaseAgent(
                 market_kb=market_kb,
                 retriever=retriever
@@ -143,15 +143,15 @@ class MetaOrchestrator:
             
             # Test if tables exist and have data
             if not market_kb.check_table_exists(self.db_conn, kb_name):
-                print(f"Tables for {kb_name} don't exist or are empty")
+                print(f"{kb_name} 对应的数据表不存在或为空")
                 return None
                 
-            print("Knowledge base initialized successfully")
+            print("知识库初始化成功")
             return kb_agent
                     
         except Exception as e:
-            print(f"Error initializing knowledge base: {str(e)}")
-            self.logger.error(f"Error initializing knowledge base '{kb_name}': {str(e)}")
+            print(f"初始化知识库时出错：{str(e)}")
+            self.logger.error(f"初始化知识库 '{kb_name}' 时出错：{str(e)}")
             return None
 
     def generate_agents(self):
@@ -231,12 +231,12 @@ class MetaOrchestrator:
 
             if agent_config.get('knowledge_base'):
                 kb_name = agent_config.get('knowledge_base')
-                print(f"\nInitializing knowledge base for agent {i} with kb_name: {kb_name}")
+                print(f"\n正在为智能体 {i} 初始化知识库，kb_name：{kb_name}")
                 knowledge_agent = self._initialize_knowledge_base(kb_name)
-                print(f"Knowledge agent initialized: {knowledge_agent is not None}")
+                print(f"知识库智能体是否初始化成功：{knowledge_agent is not None}")
             else:
                 knowledge_agent = None
-                print(f"\nNo knowledge base configured for agent {i}")
+                print(f"\n智能体 {i} 未配置知识库")
 
             agent = MarketAgent.create(
                 agent_id=agent_uuid,
@@ -270,7 +270,7 @@ class MetaOrchestrator:
         for env_name in self.environment_order:
             env_config = self.config.environment_configs.get(env_name)
             if not env_config:
-                self.logger.warning(f"Configuration for environment '{env_name}' not found.")
+                self.logger.warning(f"未找到环境 '{env_name}' 的配置。")
                 continue
 
             if env_name == 'group_chat':
@@ -292,13 +292,13 @@ class MetaOrchestrator:
                     logger=self.logger
                 )
             else:
-                self.logger.warning(f"Unknown environment: {env_name}")
+                self.logger.warning(f"未知环境：{env_name}")
                 continue
             
             # Initialize environment for this orchestrator
             #orchestrator.setup_environment()
             orchestrators[env_name] = orchestrator
-            self.logger.info(f"Initialized {env_name} environment")
+            self.logger.info(f"已初始化 {env_name} 环境")
             
         # Verify environments are properly set for all agents
         for agent in self.agents:
@@ -313,9 +313,9 @@ class MetaOrchestrator:
         
         # Set up each environment before starting simulation
         for env_name, orchestrator in self.environment_orchestrators.items():
-            self.logger.info(f"Setting up {env_name} environment...")
+            self.logger.info(f"正在设置 {env_name} 环境……")
             await orchestrator.setup_environment()  # Properly await setup
-            self.logger.info(f"Setup complete for {env_name} environment")
+            self.logger.info(f"{env_name} 环境设置完成")
         
         # Run simulation rounds - each round includes environments in sequence
         for round_num in range(1, self.config.max_rounds + 1):
@@ -325,7 +325,7 @@ class MetaOrchestrator:
             for env_name in self.environment_order:
                 orchestrator = self.environment_orchestrators.get(env_name)
                 if orchestrator is None:
-                    self.logger.warning(f"No orchestrator found for environment '{env_name}'. Skipping.")
+                    self.logger.warning(f"未找到环境 '{env_name}' 的编排器，跳过。")
                     continue
                     
                 log_environment_setup(self.logger, env_name)
@@ -335,9 +335,9 @@ class MetaOrchestrator:
                     # Process results but maintain environment assignments
                     await orchestrator.process_round_results(round_num)
                     
-                    self.logger.info(f"Completed {env_name} environment for round {round_num}")
+                    self.logger.info(f"已完成第 {round_num} 轮的 {env_name} 环境")
                 except Exception as e:
-                    self.logger.error(f"Error running {env_name} environment: {str(e)}")
+                    self.logger.error(f"运行 {env_name} 环境时出错：{str(e)}")
                     raise e
 
         # Print summaries for each environment

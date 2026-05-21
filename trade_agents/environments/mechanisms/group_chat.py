@@ -12,7 +12,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 class GroupChatMessage(BaseModel):
-    content: str = Field(description="agent's opinions & arguments on the topic. express yourself with emojis")
+    content: str = Field(description="智能体围绕当前话题发表的中文观点和论据；必要时可以使用 emoji")
     
 class GroupChatAction(LocalAction):
     action: GroupChatMessage
@@ -22,7 +22,7 @@ class GroupChatAction(LocalAction):
         return cls(
             agent_id=agent_id, 
             action=GroupChatMessage(
-                content="Sample message"
+                content="示例消息"
             )
         )
     

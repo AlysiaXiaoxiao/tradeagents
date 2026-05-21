@@ -16,7 +16,7 @@ agent_config:
   buyer_initial_goods: 0
   seller_initial_cash: 0.0
   seller_initial_goods: 10
-  good_name: "strawberry"
+  good_name: "草莓"
   noise_factor: 0.05
   max_relative_spread: 0.2
 llm_configs:
@@ -85,7 +85,7 @@ environment_configs:
     name: "group_chat"
     address: "localhost:8001"
     max_rounds: 5
-    initial_topic: "Initial Market Discussion"
+    initial_topic: "初始市场讨论"
   #  initial_topic: "Hamlet's famous 'To be or not to be' soliloquy"
     sub_rounds: 3
     group_size: 4
@@ -93,7 +93,7 @@ environment_configs:
     name: "auction"
     address: ""
     max_rounds: 5
-    good_name: "strawberry"
+    good_name: "草莓"
 protocol: "acl_message"
 database_config:
   db_host: "localhost"

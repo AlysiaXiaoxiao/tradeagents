@@ -61,7 +61,7 @@ class DatabaseConnection:
             self.conn.commit()
 
         except Exception as e:
-            print(f"Error ensuring database exists: {e}")
+            print(f"确保数据库存在时出错：{e}")
             raise
 
     def ensure_connection(self):

@@ -65,7 +65,7 @@ class MemoryRetriever:
             
         except Exception as e:
             self.db.conn.rollback()
-            print(f"Error during knowledge base search: {str(e)}")
+            print(f"知识库搜索时出错：{str(e)}")
             raise
 
     def search_agent_cognitive_memory(self, agent_id: str, query: str, top_k: int = None) -> List[RetrievedMemory]:

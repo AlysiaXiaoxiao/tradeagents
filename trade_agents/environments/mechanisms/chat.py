@@ -16,7 +16,7 @@ class ChatAction(LocalAction):
     """Response action for chat using ChainOfThoughtSchema"""
     agent_id: str
     action: ChainOfThoughtSchema = Field(
-        description="Response containing thought process and actual response"
+        description="包含中文推理过程和实际中文回复的响应"
     )
 
     @classmethod
@@ -24,8 +24,8 @@ class ChatAction(LocalAction):
         return cls(
             agent_id=agent_id,
             action=ChainOfThoughtSchema(
-                thoughts=[ThoughtStep(reasoning="Sample thinking")],
-                final_answer="Sample response"
+                thoughts=[ThoughtStep(reasoning="示例思考")],
+                final_answer="示例回复"
             )
         )
 
@@ -40,7 +40,7 @@ class ChatObservation(LocalObservation):
         return cls(
             agent_id=agent_id,
             observation=ChatMessage(
-                content="Sample message",
+                content="示例消息",
                 timestamp="2024-01-01",
                 role="user"
             ),
@@ -63,7 +63,7 @@ class ChatMechanism(Mechanism):
         last_user_message = next(
             (msg for msg in reversed(self.chat_history) 
              if msg.role == "user"), 
-            ChatMessage(content="No user message found", timestamp=timestamp, role="user")
+            ChatMessage(content="未找到用户消息", timestamp=timestamp, role="user")
         )
         
         observation = ChatObservation(

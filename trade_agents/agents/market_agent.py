@@ -81,12 +81,12 @@ class MarketAgent(LLMAgent):
                 "content": mem.content
             })
 
-        print("\nCognitive Memory Results:")
-        memory_strings = [f"Memory {i+1}:\n{mem}" for i, mem in enumerate(short_term_memories)]
+        print("\n认知记忆结果:")
+        memory_strings = [f"记忆 {i+1}:\n{mem}" for i, mem in enumerate(short_term_memories)]
         print("\033[94m" + "\n\n".join(memory_strings) + "\033[0m")
 
-        task_str = f"Task: {self.task}" if self.task else ""
-        env_state_str = f"Environment state: {str(environment_info)}" if environment_info else ""
+        task_str = f"任务：{self.task}" if self.task else ""
+        env_state_str = f"环境状态：{str(environment_info)}" if environment_info else ""
         query_str = (task_str + "\n" + env_state_str).strip()
 
         ltm_episodes = await self.long_term_memory.retrieve_episodic_memories(
@@ -101,13 +101,13 @@ class MarketAgent(LLMAgent):
                 query_str, 
                 kb_table_prefix)
 
-        print("\nEpisodic Memory Results:")
-        memory_strings = [f"Memory {i+1}:\n{mem.model_dump()}" for i, mem in enumerate(ltm_episodes)]
+        print("\n情景记忆结果:")
+        memory_strings = [f"记忆 {i+1}:\n{mem.model_dump()}" for i, mem in enumerate(ltm_episodes)]
         print("\033[94m" + "\n\n".join(memory_strings) + "\033[0m")
 
         if retrieved_documents:
-            print("\nRetrieved Documents:")
-            doc_strings = [f"Document {i+1}:\n{doc.model_dump()}" for i, doc in enumerate(retrieved_documents)]
+            print("\n检索到的知识库文档:")
+            doc_strings = [f"文档 {i+1}:\n{doc.model_dump()}" for i, doc in enumerate(retrieved_documents)]
             print("\033[95m" + "\n\n".join(doc_strings) + "\033[0m")
 
         variables = AgentPromptVariables(
@@ -267,7 +267,7 @@ class MarketAgent(LLMAgent):
             self.episode_steps.append(observation_mem)
             task = asyncio.create_task(self.short_term_memory.store_memory(observation_mem))
 
-        previous_strategy = "No previous strategy available"
+        previous_strategy = "暂无上一轮策略"
         previous_reflection = await self.short_term_memory.retrieve_recent_memories(cognitive_step='reflection', limit=1)
         if previous_reflection:
             last_reflection_obj = previous_reflection[0]
@@ -322,8 +322,8 @@ class MarketAgent(LLMAgent):
             self.episode_steps.append(reflection_mem)
             task = await self.short_term_memory.store_memory(reflection_mem)
 
-            task_str = f"Task: {self.task}" if self.task else ""
-            env_state_str = f"Environment state: {str(environment_info)}" if environment_info else ""
+            task_str = f"任务：{self.task}" if self.task else ""
+            env_state_str = f"环境状态：{str(environment_info)}" if environment_info else ""
             query_str = (task_str + "\n" + env_state_str).strip()
             await self.long_term_memory.store_episodic_memory(
                 agent_id=self.id,

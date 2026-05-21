@@ -56,8 +56,8 @@ class SavableBaseModel(BaseModel):
             raise
     
 class MarketAction(BaseModel):
-    price: float = Field(..., description="Price of the order")
-    quantity: int = Field(default=1, ge=1,le=1, description="Quantity of the order")
+    price: float = Field(..., description="订单价格")
+    quantity: int = Field(default=1, ge=1,le=1, description="订单数量，必须为 1")
 
 class Bid(MarketAction):
     @computed_field
@@ -72,15 +72,15 @@ class Ask(MarketAction):
         return False
 
 class Trade(BaseModel):
-    trade_id: int = Field(..., description="Unique identifier for the trade")
-    buyer_id: str = Field(..., description="ID of the buyer")
-    seller_id: str = Field(..., description="ID of the seller")
-    price: float = Field(..., description="The price at which the trade was executed")
-    ask_price: float = Field(ge=0, description="The price at which the ask was executed")
-    bid_price: float = Field(ge=0, description="The price at which the bid was executed")
-    quantity: int = Field(default=1, description="The quantity traded")
-    good_name: str = Field(default="consumption_good", description="The name of the good traded")
-    timestamp: datetime = Field(default_factory=datetime.now, description="Timestamp of the trade")
+    trade_id: int = Field(..., description="交易唯一标识")
+    buyer_id: str = Field(..., description="买方 ID")
+    seller_id: str = Field(..., description="卖方 ID")
+    price: float = Field(..., description="成交价格")
+    ask_price: float = Field(ge=0, description="卖方要价")
+    bid_price: float = Field(ge=0, description="买方出价")
+    quantity: int = Field(default=1, description="成交数量")
+    good_name: str = Field(default="consumption_good", description="交易商品名称")
+    timestamp: datetime = Field(default_factory=datetime.now, description="交易时间戳")
 
     @model_validator(mode='after')
     def rational_trade(self):

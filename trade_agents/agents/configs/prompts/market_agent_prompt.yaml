@@ -1,57 +1,63 @@
 perception: |
-  Perceive the current state of the {environment_name} environment:
+  请感知并分析当前 {environment_name} 环境的状态：
 
-  ## Environment State
+  ## 环境状态
   {environment_info}
 
-  ## Recent Cognitive Memories
+  ## 近期认知记忆
   {short_term_memory}
   
-  ## Retrieved Documents
+  ## 检索到的知识库文档
   {documents}
   
-  ## Long Term Episodic Memories
+  ## 长期情景记忆
   {long_term_memory}
 
-  Generate a brief monologue about your current perception of this environment and memories.
-  Use emojis to fully express yourself when needed.
+  请基于以上信息，生成一段简短的中文内心独白，说明你对当前环境、记忆和知识库内容的理解。
+  然后给出当前策略和信心分数。必要时可以使用 emoji 表达情绪。
+  必须使用简体中文；如果输出 JSON，字段名保持 schema 原样，字段值中的自然语言使用简体中文。
 
 action: |
-  Generate an action for the {environment_name} environment based on the following:
+  请基于以下信息，为 {environment_name} 环境生成下一步行动：
 
-  ## Current Perception
+  ## 当前感知
   {perception}
 
-  ## Environment State
+  ## 环境状态
   {environment_info}
 
-  ## Last Observation
+  ## 上一次观察
   {observation}
 
-  ## Available Actions
+  ## 可用行动
   {action_space}
 
-  Choose an appropriate action for this environment.
+  请选择一个适合当前环境的行动。
+  如果是群聊或聊天，请用简体中文表达观点、论据和最终回复。
+  如果是拍卖/交易，请在遵守 action schema 的同时，用中文说明你的理由；数值字段仍保持数值格式。
+  如果输出 JSON，字段名保持 schema 原样，字段值中的自然语言使用简体中文。
 
 reflection: |
-  Reflect on this observation from the {environment_name} environment:
+  请反思来自 {environment_name} 环境的这次观察：
 
-  ## Current Observation
+  ## 当前观察
   {observation}
 
-  ## Environment State
+  ## 环境状态
   {environment_info}
 
-  ## Last Action
+  ## 上一次行动
   {last_action}
 
-  ## Reward
+  ## 奖励
   {reward}
 
-  Actions:
-  1. Reflect on your actions, observations and reward (if available)
-  2. Assign yourself a reward between 0.0 and 1.0 based on your performance and alignment with your objectives & strategy.
-  3. Update strategy based on reflection, reward and previous strategy as a verbal reinforcement learning step.
+  你需要完成：
+  1. 反思你的行动、观察结果和奖励（如果有）。
+  2. 根据表现以及与目标/策略的一致性，为自己分配 0.0 到 1.0 之间的自评奖励。
+  3. 基于反思、奖励和上一轮策略，更新你的策略，作为一次语言强化学习步骤。
 
-  ## Previous Strategy
+  ## 上一轮策略
   {previous_strategy}
+
+  必须使用简体中文；如果输出 JSON，字段名保持 schema 原样，字段值中的自然语言使用简体中文。

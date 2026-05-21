@@ -118,14 +118,14 @@ class GroupChatOrchestrator:
 
             log_cohort_formation(self.logger, cohort_id, [agent.index for agent in cohort_agents])
 
-        self.logger.info("Environment setup complete.")
+        self.logger.info("环境设置完成。")
         
         # Verify environments are properly set
         for agent in self.agents:
             if 'group_chat' not in agent.environments:
-                self.logger.error(f"Agent {agent.index} missing group_chat environment!")
+                self.logger.error(f"智能体 {agent.index} 缺少 group_chat 环境！")
             else:
-                self.logger.info(f"Agent {agent.index} environments: {list(agent.environments.keys())}")
+                self.logger.info(f"智能体 {agent.index} 环境列表：{list(agent.environments.keys())}")
 
     async def run_environment(self, round_num: int = None):
         """
@@ -200,9 +200,9 @@ class GroupChatOrchestrator:
         for cohort_id, proposer_id in zip(self.cohorts.keys(), results):
             if proposer_id:
                 self.topic_proposers[cohort_id] = proposer_id
-                self.logger.info(f"Selected proposer {proposer_id} for cohort {cohort_id}")
+                self.logger.info(f"已为群组 {cohort_id} 选择话题提议者 {proposer_id}")
             else:
-                self.logger.error(f"Failed to select proposer for cohort {cohort_id}")
+                self.logger.error(f"未能为群组 {cohort_id} 选择话题提议者")
 
     async def collect_proposed_topics(self, round_num: int):
         """
@@ -219,9 +219,9 @@ class GroupChatOrchestrator:
             proposer_agent = self.agent_dict[proposer_id]
             # Set system message for proposer
             initial_topic = self.config.initial_topic
-            proposer_agent_task = f"You are the group chat topic proposer agent. Your role is to propose interesting and relevant topics for group discussion about {initial_topic}.\n"
+            proposer_agent_task = f"你是群聊话题提议智能体。你的职责是围绕“{initial_topic}”提出有趣且相关的中文群聊讨论话题。\n"
             #proposer_agent_task += f"Consider recent events, trends, or news related to {good_name}.\n" 
-            proposer_agent_task += "Propose a specific topic for discussion that would be relevant to participants. Please describe the topic in detail."
+            proposer_agent_task += "请提出一个具体、适合参与者讨论的话题，并用简体中文详细描述该话题。"
             prompt = await proposer_agent.generate_action(
                 self.config.name,
                 proposer_agent_task,
@@ -250,7 +250,7 @@ class GroupChatOrchestrator:
                 tasks.append(task)
                 log_topic_proposal(self.logger, cohort_id, proposer_agent.index, topic)
             else:
-                self.logger.error(f"Failed to extract topic from proposer {proposer_agent.id} in cohort {cohort_id}")
+                self.logger.error(f"未能从群组 {cohort_id} 的提议者 {proposer_agent.id} 输出中提取话题")
         await asyncio.gather(*tasks)
 
     def extract_topic_from_proposal(self, proposal) -> Optional[str]:
@@ -274,7 +274,7 @@ class GroupChatOrchestrator:
                 topic = proposal.str_content.strip() if proposal.str_content else None
             return topic
         except Exception as e:
-            self.logger.error(f"Error extracting topic: {e}")
+            self.logger.error(f"提取话题时出错：{e}")
             return None
 
     async def run_group_chat_sub_round(
@@ -300,7 +300,7 @@ class GroupChatOrchestrator:
             messages = await self.api_utils.get_messages(cohort_id)
 
             if not topic:
-                self.logger.warning(f"No topic found for cohort {cohort_id}")
+                self.logger.warning(f"群组 {cohort_id} 未找到话题")
                 return
 
             # Get the cohort's environment mechanism and update topic
@@ -368,7 +368,7 @@ class GroupChatOrchestrator:
                     agent.last_action = content
                     log_group_message(self.logger, cohort_id, agent.index, content, sub_round_num)
                 else:
-                    self.logger.warning(f"Failed to extract message content for agent {agent.id}")
+                    self.logger.warning(f"未能提取智能体 {agent.id} 的消息内容")
 
             # Execute API posts in parallel
             await asyncio.gather(*api_tasks)
@@ -390,7 +390,7 @@ class GroupChatOrchestrator:
                 self.data_inserter.insert_groupchat_messages(messages_to_insert, round_num, agent_id_map)
 
         except Exception as e:
-            self.logger.warning(f"Error during data insertion in sub-round {sub_round_num} for cohort {cohort_id}: {e}")
+            self.logger.warning(f"群组 {cohort_id} 第 {sub_round_num} 小轮写入数据时出错：{e}")
 
     def extract_message_content(self, action) -> Optional[str]:
         """
@@ -413,7 +413,7 @@ class GroupChatOrchestrator:
                 content = action.str_content.strip() if action.str_content else None
             return content
         except Exception as e:
-            self.logger.error(f"Error extracting message content: {e}")
+            self.logger.error(f"提取消息内容时出错：{e}")
             return None
 
     async def process_round_results(self, round_num: int):
@@ -438,14 +438,14 @@ class GroupChatOrchestrator:
                     tracker=None,
                     environment_name=cohort_env_name
                 )
-                self.logger.info(f"Data for round {round_num}, cohort {cohort_id} inserted successfully.")
+                self.logger.info(f"第 {round_num} 轮、群组 {cohort_id} 的数据已成功写入。")
 
             # Store round summary
             round_summary = await self.get_round_summary(round_num)
             self.round_summaries.append(round_summary)
 
         except Exception as e:
-            self.logger.error(f"Error processing round {round_num} results: {str(e)}")
+            self.logger.error(f"处理第 {round_num} 轮结果时出错：{str(e)}")
             self.logger.exception("Exception details:")
             raise e
 
@@ -477,19 +477,19 @@ class GroupChatOrchestrator:
         """Print a summary of the simulation results"""
         log_section(self.logger, "GROUP CHAT SIMULATION SUMMARY")
         
-        print("\nFinal Agent States:")
+        print("\n最终智能体状态：")
         for agent in self.agents:
-            print(f"Agent {agent.index}")
-            print(f"  Last action: {agent.last_action}")
+            print(f"智能体 {agent.index}")
+            print(f"  上一次行动：{agent.last_action}")
             # Get the most recent reflection from short-term memory
             recent_reflections = await agent.short_term_memory.retrieve_recent_memories(cognitive_step='reflection', limit=1)
             if recent_reflections:
-                print(f"  Last reflection: {recent_reflections[0].content}")
+                    print(f"  上一次反思：{recent_reflections[0].content}")
             print()
         
         # Print round summaries
         for summary in self.round_summaries:
-            print(f"Round {summary['round']} summary:")
+            print(f"第 {summary['round']} 轮总结：")
             for agent_state in summary['agent_states']:
-                print(f"  Agent {agent_state['index']} last action: {agent_state['last_action']}")
+                print(f"  智能体 {agent_state['index']} 上一次行动：{agent_state['last_action']}")
             print()

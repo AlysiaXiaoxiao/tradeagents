@@ -61,6 +61,17 @@ class PromptManager:
         self.default_prompt_path = os.path.join(self.script_dir, '..', 'configs', 'prompts', "default_prompt.yaml")
         self.system_prompt_schema, self.task_prompt_schema = self._read_yaml_file(self.prompt_path)
 
+    @staticmethod
+    def _localize_role(role: str) -> str:
+        role_map = {
+            "buyer": "买方",
+            "Buyer": "买方",
+            "seller": "卖方",
+            "Seller": "卖方",
+            "agent": "智能体",
+        }
+        return role_map.get(role, role)
+
     def format_yaml_prompt(self) -> str:
         """
         Format the YAML prompt with variables.
@@ -134,7 +145,7 @@ class PromptManager:
         output_format = output_schema if isinstance(output_schema, str) else "json_object"
         
         input_vars = PromptTemplateVariables(
-            role=self.role,
+            role=self._localize_role(self.role),
             persona=self.persona,
             objectives=self.objectives,
             task=task,
@@ -153,13 +164,13 @@ class PromptManager:
         Returns:
             str: Formatted system prompt.
         """
-        system_content = f"Role: {self.system_prompt_schema.Role.format(**self.prompt_vars.dict())}\n"
+        system_content = f"角色: {self.system_prompt_schema.Role.format(**self.prompt_vars.dict())}\n"
         
         if self.persona and self.system_prompt_schema.Persona:
-            system_content += f"Persona: {self.system_prompt_schema.Persona.format(**self.prompt_vars.dict())}\n"
+            system_content += f"人格背景: {self.system_prompt_schema.Persona.format(**self.prompt_vars.dict())}\n"
         
         if self.objectives and self.system_prompt_schema.Objectives:
-            system_content += f"Objectives: {self.system_prompt_schema.Objectives.format(**self.prompt_vars.dict())}\n"
+            system_content += f"目标: {self.system_prompt_schema.Objectives.format(**self.prompt_vars.dict())}\n"
         
         return system_content
 
@@ -170,15 +181,15 @@ class PromptManager:
         Returns:
             str: Formatted task prompt.
         """
-        user_content = f"Tasks: {self.task_prompt_schema.Tasks.format(**self.prompt_vars.dict())}\n"
+        user_content = f"任务: {self.task_prompt_schema.Tasks.format(**self.prompt_vars.dict())}\n"
         
         if self.prompt_vars.pydantic_schema and self.task_prompt_schema.Output_schema:
-            user_content += f"Output_schema: {self.task_prompt_schema.Output_schema.format(**self.prompt_vars.dict())}\n"
+            user_content += f"输出结构: {self.task_prompt_schema.Output_schema.format(**self.prompt_vars.dict())}\n"
         else:
-            user_content += f"Output_format: {self.prompt_vars.output_format}\n"
+            user_content += f"输出格式: {self.prompt_vars.output_format}\n"
         
         if self.task_prompt_schema.Assistant:
-            user_content += f"Assistant: {self.task_prompt_schema.Assistant.format(**self.prompt_vars.dict())}"
+            user_content += f"助手: {self.task_prompt_schema.Assistant.format(**self.prompt_vars.dict())}"
         
         return user_content
 
